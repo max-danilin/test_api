@@ -1,0 +1,4 @@
+*.pyc
+venv
+shop/__pycache__
+testP_api/__pycache__

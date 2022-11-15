@@ -146,6 +146,19 @@ class AddCartItemSerializer(serializers.ModelSerializer):
         return self.instance
 
 
+class AddCartSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(read_only=True)
+    items = CartItemSerializer(many=True, read_only=True)
+    class Meta:
+        model = ShoppingCart
+        fields = ['id', 'items']
+
+    def save(self, **kwargs):
+        cart_customer_id = self.context['user']
+        cart = ShoppingCart.objects.create(customer_id=cart_customer_id)
+        self.instance = cart
+        return self.instance
+
 class CartSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     items = CartItemSerializer(many=True, read_only=True)

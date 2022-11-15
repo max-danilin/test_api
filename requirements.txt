@@ -1,0 +1,10 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+django-filter
+django-debug-toolbar
+drf-nested-routers
+Pillow
+redis
+Celery
+requests

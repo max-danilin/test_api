@@ -3,14 +3,14 @@ from django.contrib.auth import authenticate, get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, ListModelMixin
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework import generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Product, ShoppingCart, User, CartItem
-from .serializers import ProductSerializer, CartSerializer, CustomerSerializer, CartItemSerializer, AddCartItemSerializer, UpdateCartItemSerializer, MyTokenObtainPairSerializer, UserRegisterSerializer
+from .serializers import ProductSerializer, CartSerializer, CustomerSerializer, CartItemSerializer, AddCartItemSerializer, UpdateCartItemSerializer, MyTokenObtainPairSerializer, UserRegisterSerializer, AddCartSerializer
 from .filters import ProductFilter, CustomerFilter
 from .permissions import IsAdminOrReadOnly, CartPermission
 
@@ -33,7 +33,7 @@ class RegisterView(generics.CreateAPIView):
         return Response({'access': str(token.access_token), 'refresh': str(token)})
 
 
-class ProductViewSet(ModelViewSet):
+class ProductViewSet(RetrieveModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
     # queryset = Product.objects.select_related('category').select_related('size').select_related('color').all()
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -48,8 +48,16 @@ class ProductViewSet(ModelViewSet):
 
 class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = ShoppingCart.objects.prefetch_related('items__product').all()
-    serializer_class = CartSerializer
+    # serializer_class = CartSerializer
     permission_classes = [CartPermission]
+
+    def get_serializer_context(self):
+        return {'user': self.request.user.id}
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AddCartSerializer
+        return CartSerializer
 
 
 class CartItemViewSet(ModelViewSet):
